@@ -7,9 +7,9 @@ import uuid
 set_site_information(
     author= "Rashad Cherkaoui",
     description= "Bill Buddy",
-    sources= "I used the drafter docs for the most part and also used chatgpt to help me with css/div design",
+    sources= "I used the drafter docs for the most part and also used chatgpt to help me with css/div design. The LLM conversation is in the links section.",
     planning= "",
-    links= ["https://github.com/rashad-design/budgeting-site"]
+    links= ["https://github.com/rashad-design/budgeting-site", "https://chatgpt.com/share/6af5f3bb-4a48-83ea-b87e-36ccbef00dea"]
     )
 
 
@@ -19,7 +19,15 @@ class Bill:
     name: str
     price: float
     paid: bool
+    '''
+    This is a Bill class used to create info for each bill
     
+    Fields:
+    unique_id(str): The unique uuid for the bill
+    name(str): The name of the bill created
+    price(float): The price of the bill created
+    paid(bool): The status of the bill if it has been paid or not
+    '''
 
 @dataclass
 class State:
@@ -27,12 +35,25 @@ class State:
     message: str
     budget: float
     quiz_taken: bool
-
+    '''
+    This is a State class used to save/mutate info
+    
+    Fields:
+    bills(list[Bill]): The list that stores all bills
+    message(str): The status message of the current page
+    budget(float): The budget value you input to calculate math
+    quiz_taken(bool): Flags if the financial quiz has been taken
+    '''
 
 @dataclass
 class Settings:
     dark_mode: bool
+        '''
+    This is a Settings class used to create/saving info for the settings page
     
+    Fields:
+    dark_mode(bool): Changes between light and dark mode
+    '''
 
 #Financial Quiz section----------------------------------------------------------------------------------------------
 @route
@@ -285,8 +306,6 @@ def settings_page(state: State):
         Button("Budgeting", "budget_page"),
         Button("Settings", "settings_page")
     ])
-
-
 
 
 start_server(State([], "", 0.0, False))
