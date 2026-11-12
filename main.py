@@ -48,7 +48,7 @@ class State:
 @dataclass
 class Settings:
     dark_mode: bool
-        '''
+    '''
     This is a Settings class used to create/saving info for the settings page
     
     Fields:
