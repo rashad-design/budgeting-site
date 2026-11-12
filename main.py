@@ -3,6 +3,16 @@ from dataclasses import dataclass
 from drafter import *
 import uuid
 
+
+set_site_information(
+    author= "Rashad Cherkaoui",
+    description= "Bill Buddy",
+    sources= "I used the drafter docs for the most part and also used chatgpt to help me with css/div design",
+    plannings= "",
+    links= ["https://github.com/rashad-design/budgeting-site"]
+    )
+
+
 @dataclass
 class Bill:
     unique_id: str
