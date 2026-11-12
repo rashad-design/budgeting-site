@@ -8,7 +8,7 @@ set_site_information(
     author= "Rashad Cherkaoui",
     description= "Bill Buddy",
     sources= "I used the drafter docs for the most part and also used chatgpt to help me with css/div design",
-    plannings= "",
+    planning= "",
     links= ["https://github.com/rashad-design/budgeting-site"]
     )
 
