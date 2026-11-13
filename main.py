@@ -146,8 +146,8 @@ def quiz_completed(state: State, is_in_debt: bool, debt_amt: float, salary: floa
         ])
         
     else:
-        salary_per_month = salary // 12
-        percent_to_decimal = debt_percentage // 100
+        salary_per_month = salary / 12
+        percent_to_decimal = debt_percentage / 100
         to_pay_per_month = salary_per_month * percent_to_decimal
         return Page(state, [
             change_text_align(Header("Financial Quiz"), "center"),
@@ -282,6 +282,7 @@ def bills_page(state: State)-> Page:
 def create_bill(state: State, name: str, price: float, paid: bool)-> Page:
     '''
     This function creates a bill with a unique id based on the inputs from the user
+    Also, this function is unable to be unit tested as it has a uuid.
     
     Args:
     state(State): The state for the page
@@ -312,7 +313,6 @@ def delete_bill(state: State, unique_id: str)-> Page:
     Returns the homepage route with the state
     '''
     
-    print(unique_id)
     for bill in state.bills:
         if bill.unique_id == unique_id:
             state.bills.remove(bill)
@@ -380,7 +380,7 @@ def settings_page(state: State)-> Page:
         change_text_align(Header("Settings Menu"), "center"),
         change_text_align(Text(state.message), "center"),
         "\n",
-        "Turn on dark mode", Button("Mode", "toggle_dark_mode"),
+        "Turn on dark mode", Button("Toggle", "toggle_dark_mode"),
         "\n",
         Button("Return to home", "home_page"),
     ])
@@ -390,6 +390,251 @@ def settings_page(state: State)-> Page:
 def toggle_dark_mode(state: State)-> Page:
     state.settings.dark_mode = not state.settings.dark_mode
     return settings_page(state)
+
+
+
+
+
+# Tests for all functions--------------------------------------------------------------------------------------------
+
+# index
+assert_equal(
+    index(State([], "", 0.0, False, Settings(False))),
+    Page(State([], "", 0.0, False, Settings(False)), [
+        change_text_align(Header("Financial Quiz"), "center"),
+        "\n",
+        "Are you in debt? (If you answer no please skip the the rest of the questions.)",
+        SelectBox("is_in_debt", ["No", "Yes"]),
+        "\n",
+        "If you are in any debt, how much debt are you in?",
+        TextBox("debt_amt", 0.0, "number"),
+        "\n",
+        "How much do you make per year?",
+        TextBox("salary", 0.0, "number"),
+        "\n",
+        "What debt percentage would you like to select for an estimated pay per month for your debt?",
+        TextBox("debt_percentage", 0, "number"),
+        "\n",
+        Button("Complete", "quiz_completed")
+    ])
+)
+
+
+#Assert_equal section--------------------------------------------------------------------------------------------------------
+# quiz_completed (no debt)
+assert_equal(
+    quiz_completed(State([], "", 0.0, False, Settings(False)), False, 0.0, 50000.0, 10),
+    Page(State([], "", 0.0, True, Settings(False)), [
+        change_text_align(Header("Financial Quiz"), "center"),
+        change_text_align(Text("Since you do not have a debt, I hope you can use this website for budgeting or any other reasons!"), "center"),
+        "\n",
+        Button("Next", "home_page")
+    ])
+)
+
+
+# quiz_completed (has debt)
+assert_equal(
+    quiz_completed(State([], "", 0.0, False, Settings(False)), True, 12000.0, 60000.0, 10),
+    Page(State([], "", 0.0, True, Settings(False)), [
+        change_text_align(Header("Financial Quiz"), "center"),
+        change_text_align(Text("Since you have a debt of $12000.0, based on your salary of $60000.0, I recommend you pay $500.0 per month toward your debts"), "center"),
+        "\n",
+        Button("Next", "home_page")
+    ])
+)
+
+
+# create_page (light mode)
+assert_equal(
+    create_page(State([], "", 0.0, False, Settings(False)), ["Test content"]),
+    Page(State([], "", 0.0, False, Settings(False)), [
+        Div("Test content", classes="light-mode")
+    ])
+)
+
+
+# create_page (dark mode)
+assert_equal(
+    create_page(State([], "", 0.0, False, Settings(True)), ["Test content"]),
+    Page(State([], "", 0.0, False, Settings(True)), [
+        Div("Test content", classes="dark-mode")
+    ])
+)
+
+
+# home_page (no bills)
+assert_equal(
+    home_page(State([], "", 0.0, False, Settings(False))),
+    create_page(State([], "No bills created yet", 0.0, False, Settings(False)), [
+        change_text_align(Header("Budget Buddy: Home"), "center"),
+        change_text_align(Text("Welcome to Budget Buddy!"), "center"),
+        change_text_align(Text("No bills created yet"), "center"),
+        "\n",
+        Button("Home", "home_page"),
+        Button("Bills", "bills_page"),
+        Button("Budgeting", "budget_page"),
+        Button("Settings", "settings_page"),
+        Div(
+            style={
+                "display": "flex",
+                "flexDirection": "row",
+                "flexWrap": "wrap",
+                "alignItems": "center",
+                "justifyContent": "center",
+                "gap": "15px",
+                "width": "100%"
+            }
+        )
+    ])
+)
+
+
+# create_box
+assert_equal(
+    create_box(Bill("test-id", "Electricity", 75.0, False)),
+    Div(
+        Header("Name: Electricity"),
+        Header("Price: $75.0"),
+        Header("Paid: No"),
+        Button("Delete Electricity", "delete_bill", arguments=[("unique_id", "test-id")])
+    )
+)
+
+
+# create_box (paid bill)
+assert_equal(
+    create_box(Bill("test-id", "Internet", 60.0, True)),
+    Div(
+        Header("Name: Internet"),
+        Header("Price: $60.0"),
+        Header("Paid: Yes"),
+        Button("Delete Internet", "delete_bill", arguments=[("unique_id", "test-id")])
+    )
+)
+
+
+# bills_page
+assert_equal(
+    bills_page(State([], "", 0.0, False, Settings(False))),
+    create_page(State([], "Please input a name, price, and status of your bill.", 0.0, False, Settings(False)), [
+        change_text_align(Header("Bills"), "center"),
+        "\n",
+        "Please input a name, price, and status of your bill.",
+        "\n",
+        "Bill Name:", TextBox("name", "", "text"),
+        "\n",
+        "Bill Price:", TextBox("price", 0.0, "number"),
+        "\n",
+        "Paid?:", SelectBox("paid", ["Yes", "No"]),
+        "\n",
+        Button("Cancel", "home_page"),
+        Button("Add", "create_bill")
+    ])
+)
+
+
+# delete_bill
+assert_equal(
+    delete_bill(
+        State([Bill("test-id", "Electricity", 75.0, False)], "", 0.0, False, Settings(False)),
+        "test-id"
+    ),
+    home_page(State([], "No bills created yet", 0.0, False, Settings(False)))
+)
+
+
+# get_paid_bills
+assert_equal(
+    get_paid_bills(State([
+        Bill("1", "Electricity", 75.0, True),
+        Bill("2", "Internet", 60.0, False),
+        Bill("3", "Water", 40.0, True)
+    ], "", 0.0, False, Settings(False))),
+    [
+        Bill("1", "Electricity", 75.0, True),
+        Bill("3", "Water", 40.0, True)
+    ]
+)
+
+
+# get_paid_bills (no paid bills)
+assert_equal(
+    get_paid_bills(State([
+        Bill("1", "Electricity", 75.0, False),
+        Bill("2", "Internet", 60.0, False)
+    ], "", 0.0, False, Settings(False))),
+    []
+)
+
+
+# budget_page
+assert_equal(
+    budget_page(State([], "", 0.0, False, Settings(False))),
+    create_page(State([], "Please enter your budget for the month. This will calculate how much is left over by deducting the paid bills only.", 0.0, False, Settings(False)), [
+        change_text_align(Header("Settings Menu"), "center"),
+        change_text_align(Text("Please enter your budget for the month. This will calculate how much is left over by deducting the paid bills only."), "center"),
+        "\n",
+        "Budget: ", TextBox("budget", 0.0, "number"),
+        "\n",
+        Button("Cancel", "home_page"),
+        Button("Calculate", "calculate_budget")
+    ])
+)
+
+
+# calculate_budget
+assert_equal(
+    calculate_budget(
+        State([
+            Bill("1", "Electricity", 75.0, True),
+            Bill("2", "Internet", 60.0, False)
+        ], "", 0.0, False, Settings(False)),
+        500.0
+    ),
+    create_page(State([
+        Bill("1", "Electricity", 75.0, True),
+        Bill("2", "Internet", 60.0, False)
+    ], "Your leftover budget is: 425.0", 500.0, False, Settings(False)), [
+        change_text_align(Header("Settings Menu"), "center"),
+        change_text_align(Text("Please enter your budget for the month. This will calculate how much of your budget is left by deducting the paid bills."), "center"),
+        "\n",
+        "Budget: ", TextBox("budget", 0.0, "number"),
+        "\n",
+        Button("Cancel", "home_page"),
+        Button("Calculate", "calculate_budget"),
+        "\n",
+        change_text_align(Text("Your leftover budget is: 425.0"), "center")
+    ])
+)
+
+
+# settings_page
+assert_equal(
+    settings_page(State([], "", 0.0, False, Settings(False))),
+    create_page(State([], "Edit settings to your preference.", 0.0, False, Settings(False)), [
+        change_text_align(Header("Settings Menu"), "center"),
+        change_text_align(Text("Edit settings to your preference."), "center"),
+        "\n",
+        "Turn on dark mode", Button("Toggle", "toggle_dark_mode"),
+        "\n",
+        Button("Return to home", "home_page")
+    ])
+)
+
+
+# toggle_dark_mode
+assert_equal(
+    toggle_dark_mode(State([], "", 0.0, False, Settings(False))),
+    create_page(State([], "Edit settings to your preference.", 0.0, False, Settings(True)), [
+        change_text_align(Header("Settings Menu"), "center"),
+        change_text_align(Text("Edit settings to your preference."), "center"),
+        "\n",
+        "Turn on dark mode", Button("Toggle", "toggle_dark_mode"),
+        "\n",
+        Button("Return to home", "home_page")
+    ])
+)
 
 
 start_server(State([], "", 0.0, False, Settings(False)))
