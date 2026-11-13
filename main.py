@@ -107,6 +107,7 @@ def quiz_completed(state: State, is_in_debt: bool, debt_amt: float, salary: floa
         return Page(state, [
             change_text_align(Header("Financial Quiz"), "center"),
             change_text_align(Text("Since you do not have a debt, I hope you can use this website for budgeting or any other reasons!"), "center"),
+            "\n",
             Button("Next", "home_page")
         ])
         
@@ -117,6 +118,7 @@ def quiz_completed(state: State, is_in_debt: bool, debt_amt: float, salary: floa
         return Page(state, [
             change_text_align(Header("Financial Quiz"), "center"),
             change_text_align(Text("Since you have a debt of $" + str(debt_amt) +", based on your salary of $" + str(salary) +", I recommend you pay $" + str(to_pay_per_month) +" per month toward your debts"), "center"),
+            "\n",
             Button("Next", "home_page")
         ])
     
@@ -281,8 +283,8 @@ def get_paid_bills(state: State)-> list[Bill]:
 
 
 @route
-def budget_page(state: State):
-    state.message = "Please enter your budget for the month. This will calculate how much of your budget is left by deducting the paid bills."
+def budget_page(state: State)-> Page:
+    state.message = "Please enter your budget for the month. This will calculate how much is left over by deducting the paid bills only."
     return Page(state, [
         change_text_align(Header("Settings Menu"), "center"),
         change_text_align(Text(state.message), "center"),
@@ -290,12 +292,47 @@ def budget_page(state: State):
         Button("Home", "home_page"),
         Button("Bills", "bills_page"),
         Button("Budgeting", "budget_page"),
-        Button("Settings", "settings_page")
+        Button("Settings", "settings_page"),
+        "\n",
+        "Budget: ", TextBox("budget", 0.0, "number"),
+        "\n",
+        Button("Calculate", "calculate_budget")
     ])
-    
-    
+
 @route
-def settings_page(state: State):
+def calculate_budget(state: State, budget: float)-> Page:
+    state.budget = budget
+    paid_bills = get_paid_bills(state)
+    total = 0
+    
+    for bill in paid_bills:
+        total += bill.price
+    
+    leftover_amt = state.budget - total
+    
+    text_msg = "Please enter your budget for the month. This will calculate how much of your budget is left by deducting the paid bills."
+    state.message = "Your leftover budget is: " + str(leftover_amt)
+    
+    return Page(state, [
+        change_text_align(Header("Settings Menu"), "center"),
+        change_text_align(Text(text_msg), "center"),
+        "\n",
+        Button("Home", "home_page"),
+        Button("Bills", "bills_page"),
+        Button("Budgeting", "budget_page"),
+        Button("Settings", "settings_page"),
+        "\n",
+        "Budget: ", TextBox("budget", 0.0, "number"),
+        "\n",
+        Button("Calculate", "calculate_budget"),
+        "\n",
+        change_text_align(Text(state.message), "center")
+    ])
+
+    
+
+@route
+def settings_page(state: State)-> Page:
     state.message = "Edit settings to your preference."
     return Page(state, [
         change_text_align(Header("Settings Menu"), "center"),
