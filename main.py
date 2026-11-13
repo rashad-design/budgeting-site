@@ -34,7 +34,7 @@ add_website_css("""
 
 set_site_information(
     author= "Rashad Cherkaoui",
-    description= "Bill Buddys",
+    description= "Bill Buddy is a website built for budgeting. It's designed so that you can manage your finances and stay organized. You can add bills and input your budget to get started. You can go to the homepage to view your bills or delete the ones you don't want",
     sources= "I used the drafter docs for the most part and also used chatgpt to help me with the css/div design alignment, assert_equals, and settings theme. The LLM conversations/brainstorm and design links are in the reposity.",
     planning= "",
     links= ["https://github.com/rashad-design/budgeting-site"]
