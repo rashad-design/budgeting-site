@@ -4,10 +4,38 @@ from drafter import *
 import uuid
 
 
+add_website_css("""
+.dark-mode {
+    background-color: #121212;
+    color: white;
+    min-height: 100vh;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode p,
+.dark-mode label {
+    color: white;
+}
+
+.light-mode {
+    background-color: white;
+    color: black;
+    min-height: 100vh;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+""")
+
 set_site_information(
     author= "Rashad Cherkaoui",
     description= "Bill Buddy",
-    sources= "I used the drafter docs for the most part and also used chatgpt to help me with css/div design. The LLM conversation is in the links section.",
+    sources= "I used the drafter docs for the most part and also used chatgpt to help me with just the css/div design alignment. The LLM conversation is in the links section.",
     planning= "",
     links= ["https://github.com/rashad-design/budgeting-site", "https://chatgpt.com/share/6af5f3bb-4a48-83ea-b87e-36ccbef00dea"]
     )
@@ -29,21 +57,6 @@ class Bill:
     paid(bool): The status of the bill if it has been paid or not
     '''
 
-@dataclass
-class State:
-    bills: list[Bill]
-    message: str
-    budget: float
-    quiz_taken: bool
-    '''
-    This is a State class used to save/mutate info
-    
-    Fields:
-    bills(list[Bill]): The list that stores all bills
-    message(str): The status message of the current page
-    budget(float): The budget value you input to calculate math
-    quiz_taken(bool): Flags if the financial quiz has been taken
-    '''
 
 @dataclass
 class Settings:
@@ -54,6 +67,27 @@ class Settings:
     Fields:
     dark_mode(bool): Changes between light and dark mode
     '''
+
+
+@dataclass
+class State:
+    bills: list[Bill]
+    message: str
+    budget: float
+    quiz_taken: bool
+    settings: Settings
+    
+    '''
+    This is a State class used to save/mutate info
+    
+    Fields:
+    bills(list[Bill]): The list that stores all bills
+    message(str): The status message of the current page
+    budget(float): The budget value you input to calculate math
+    quiz_taken(bool): Flags if the financial quiz has been taken
+    settings(Settings): Settings that will be saved
+    '''
+
 
 #Financial Quiz section----------------------------------------------------------------------------------------------
 @route
@@ -121,7 +155,23 @@ def quiz_completed(state: State, is_in_debt: bool, debt_amt: float, salary: floa
             "\n",
             Button("Next", "home_page")
         ])
-    
+
+
+#Themes for pages
+def create_page(state: State, content: list) -> Page:
+    if state.settings.dark_mode:
+        theme = "dark-mode"
+    else:
+        theme = "light-mode"
+
+    return Page(state, [
+        Div(
+            *content,
+            classes=theme
+        )
+    ])
+
+
 #Homepage section--------------------------------------------------------------------------------------------
 @route
 def home_page(state: State)-> Page:
@@ -146,7 +196,7 @@ def home_page(state: State)-> Page:
     for bill in state.bills:
         bill_elements.append(create_box(bill))
 
-    return Page(state, [
+    return create_page(state, [
         change_text_align(Header("Budget Buddy: Home"), "center"),
         change_text_align(Text("Welcome to Budget Buddy!"), "center"),
         change_text_align(Text(state.message), "center"),
@@ -213,7 +263,7 @@ def bills_page(state: State)-> Page:
     
     state.message = "Please input a name, price, and status of your bill."
 
-    return Page(state, [
+    return create_page(state, [
             change_text_align(Header("Bills"), "center"),
             "\n", state.message,
             "\n",
@@ -271,7 +321,6 @@ def delete_bill(state: State, unique_id: str)-> Page:
 
 
 #Budgetpage section---------------------------------------------------------------------------------------------------
-
 def get_paid_bills(state: State)-> list[Bill]:
     paid_bills = []
     
@@ -285,19 +334,16 @@ def get_paid_bills(state: State)-> list[Bill]:
 @route
 def budget_page(state: State)-> Page:
     state.message = "Please enter your budget for the month. This will calculate how much is left over by deducting the paid bills only."
-    return Page(state, [
+    return create_page(state, [
         change_text_align(Header("Settings Menu"), "center"),
         change_text_align(Text(state.message), "center"),
         "\n",
-        Button("Home", "home_page"),
-        Button("Bills", "bills_page"),
-        Button("Budgeting", "budget_page"),
-        Button("Settings", "settings_page"),
-        "\n",
         "Budget: ", TextBox("budget", 0.0, "number"),
         "\n",
+        Button("Cancel", "home_page"),
         Button("Calculate", "calculate_budget")
     ])
+
 
 @route
 def calculate_budget(state: State, budget: float)-> Page:
@@ -313,36 +359,37 @@ def calculate_budget(state: State, budget: float)-> Page:
     text_msg = "Please enter your budget for the month. This will calculate how much of your budget is left by deducting the paid bills."
     state.message = "Your leftover budget is: " + str(leftover_amt)
     
-    return Page(state, [
+    return create_page(state, [
         change_text_align(Header("Settings Menu"), "center"),
         change_text_align(Text(text_msg), "center"),
         "\n",
-        Button("Home", "home_page"),
-        Button("Bills", "bills_page"),
-        Button("Budgeting", "budget_page"),
-        Button("Settings", "settings_page"),
-        "\n",
         "Budget: ", TextBox("budget", 0.0, "number"),
         "\n",
+        Button("Cancel", "home_page"),
         Button("Calculate", "calculate_budget"),
         "\n",
         change_text_align(Text(state.message), "center")
     ])
 
-    
 
+#Settingspage section-------------------------------------------------------------------------------------------------------    
 @route
 def settings_page(state: State)-> Page:
     state.message = "Edit settings to your preference."
-    return Page(state, [
+    return create_page(state, [
         change_text_align(Header("Settings Menu"), "center"),
         change_text_align(Text(state.message), "center"),
         "\n",
-        Button("Home", "home_page"),
-        Button("Bills", "bills_page"),
-        Button("Budgeting", "budget_page"),
-        Button("Settings", "settings_page")
+        "Turn on dark mode", Button("Mode", "toggle_dark_mode"),
+        "\n",
+        Button("Return to home", "home_page"),
     ])
 
 
-start_server(State([], "", 0.0, False))
+@route
+def toggle_dark_mode(state: State)-> Page:
+    state.settings.dark_mode = not state.settings.dark_mode
+    return settings_page(state)
+
+
+start_server(State([], "", 0.0, False, Settings(False)))
