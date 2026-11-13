@@ -35,9 +35,9 @@ add_website_css("""
 set_site_information(
     author= "Rashad Cherkaoui",
     description= "Bill Buddy",
-    sources= "I used the drafter docs for the most part and also used chatgpt to help me with just the css/div design alignment. The LLM conversation is in the links section.",
+    sources= "I used the drafter docs for the most part and also used chatgpt to help me with the css/div design alignment, assert_equals, and settings theme. The LLM conversation is in the links section.",
     planning= "",
-    links= ["https://github.com/rashad-design/budgeting-site", "https://chatgpt.com/share/6af5f3bb-4a48-83ea-b87e-36ccbef00dea"]
+    links= ["https://github.com/rashad-design/budgeting-site", "https://chatgpt.com/share/6af66c07-e70c-83ea-b6ea-5945db583f89", "https://chatgpt.com/share/6af66c25-fb80-83ea-958d-34515f359846"]
     )
 
 
